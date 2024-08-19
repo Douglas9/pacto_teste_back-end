@@ -29,7 +29,9 @@ public class TelefoneEntity {
     	this.tipo = tipo;
     	this.numero = numero;
     }
+    
     public TelefoneEntity() {
+    	
     }
 
 	public Long getId() {

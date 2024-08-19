@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import com.pactoteste.dto.DtoDadosCliente;
 import com.pactoteste.entity.ClienteEntity;
-import com.pactoteste.entity.EnderecoEntity;
 import com.pactoteste.entity.PessoaEntity;
 import com.pactoteste.utils.Utils;
 
@@ -21,20 +20,13 @@ import io.micrometer.common.util.StringUtils;
 public class ImportadorService {
 
 	@Autowired
-	private TelefoneService telefoneService;
-	@Autowired
 	private PessoaService pessoaService;
-	@Autowired
-	private EmailService emailService;
 	@Autowired
 	private ClienteService clienteService;
 	@Autowired
-	private EnderecoService enderecoService;
-	@Autowired
 	private ContratoService contratoService;
-	
-	private static Logger logger = LogManager.getLogger(DtoDadosCliente.class.getName());
 
+	private static Logger logger = LogManager.getLogger(DtoDadosCliente.class.getName());
 	SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
 	public void salvar(List<DtoDadosCliente> listaDtoCliente) throws ParseException {
@@ -42,38 +34,12 @@ public class ImportadorService {
 		for (DtoDadosCliente dados : listaDtoCliente) {
 
 			if (validar(dados, index)) {
-
-				PessoaEntity pessoa = new PessoaEntity();
-				pessoa.setMatricula(dados.getMatricula());
-				pessoa.setNomeCompleto(dados.getNomeCompleto());
-				pessoa.setCpf(dados.getCpf());
-				pessoa.setDataNascimento(formatter.parse(dados.getDataNascimento()));
-				pessoa.setDataCadastro(formatter.parse(dados.getDataCadastro()));
-
-				PessoaEntity PessoaSalva = pessoaService.salvar(pessoa);
-
-				if (PessoaSalva != null) {
-
-					emailService.salvarEmail(PessoaSalva, dados.getEmail());
-					telefoneService.salvarTelefones(PessoaSalva, dados.getTelefoneCelular(), "CELULAR");
-					telefoneService.salvarTelefones(PessoaSalva, dados.getTelefoneResidencial(), "RESIDENCIAL");
-
-					EnderecoEntity endereco = new EnderecoEntity();
-					endereco.setPessoa(pessoa);
-					endereco.setBairro(dados.getBairro());
-					endereco.setCep(dados.getCep());
-					endereco.setCidade(dados.getCidade());
-					endereco.setComplemento(dados.getComplemento());
-					endereco.setEstado(dados.getEstado());
-					endereco.setNumero(dados.getNumero());
-					endereco.setLogradouro(dados.getLogradouro());
-					endereco.setPais(dados.getPais());
-
-					enderecoService.salvarEndereco(PessoaSalva, endereco);
-
-					ClienteEntity clienteSalvo = clienteService.salvarCliente(PessoaSalva, dados.getPlanoDescricao(),
-							formatter.parse(dados.getDataLancamento()), formatter.parse(dados.getDataInicio()),
-							formatter.parse(dados.getDataFim()));
+				PessoaEntity pessoaSalva = pessoaService.salvar(dados);
+				
+				if (pessoaSalva != null) {
+					ClienteEntity clienteSalvo = clienteService.salvarCliente(pessoaSalva, dados.getPlanoDescricao(),
+							formatter.parse(dados.getDataLancamento()),
+							formatter.parse(dados.getDataInicio()), formatter.parse(dados.getDataFim()));
 
 					contratoService.salvarContrato(clienteSalvo, dados.getPlanoDescricao(),
 							formatter.parse(dados.getDataInicio()), formatter.parse(dados.getDataFim()));
@@ -87,7 +53,7 @@ public class ImportadorService {
 
 	}
 
-	private boolean validar(DtoDadosCliente dadosImportacao , int linha) {
+	private boolean validar(DtoDadosCliente dadosImportacao, int linha) {
 		logger.info("Processando planilha");
 
 		if (StringUtils.isBlank(dadosImportacao.getNomeCompleto())) {
@@ -113,13 +79,15 @@ public class ImportadorService {
 			return false;
 		}
 
-		if (!Utils.validaTelefone(dadosImportacao.getTelefoneCelular()) && dadosImportacao.getTelefoneCelular() != null) {
+		if (!Utils.validaTelefone(dadosImportacao.getTelefoneCelular())
+				&& dadosImportacao.getTelefoneCelular() != null) {
 			logger.error("Erro: telefone celular invalido na linha + " + linha);
 			System.out.println("Erro: telefone celular invalido na linha + " + linha);
 			return false;
 		}
 
-		if (!Utils.validaTelefone(dadosImportacao.getTelefoneResidencial()) && dadosImportacao.getTelefoneResidencial() != null) {
+		if (!Utils.validaTelefone(dadosImportacao.getTelefoneResidencial())
+				&& dadosImportacao.getTelefoneResidencial() != null) {
 			logger.error("Erro: telefone Residencial invalido na linha + " + linha);
 			System.out.println("Erro: telefone Residencial invalido na linha + " + linha);
 			return false;

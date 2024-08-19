@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -41,6 +42,10 @@ public class PessoaEntity {
 
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EmailEntity> emails;
+    
+    @OneToOne(mappedBy = "pessoa")
+    private ClienteEntity cliente;
+    
 
 	public Long getId() {
 		return id;
@@ -113,9 +118,14 @@ public class PessoaEntity {
 	public void setEmails(List<EmailEntity> emails) {
 		this.emails = emails;
 	}
-    
-    
-    
-	    
+
+	public ClienteEntity getCliente() {
+		return cliente;
+	}
+
+	public void setCliente(ClienteEntity cliente) {
+		this.cliente = cliente;
+	}
+   
 
 }
